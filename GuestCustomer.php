@@ -27,9 +27,48 @@
       </div>
 
 <div class= "row">
-<!--- Add  ---->
+  <!--- Add  ---->
+
+  <!--- search bar -->
+  <!--refresh page when submit-->
+
+  <p><input type="text" name="searchitem" size="6">
+
+<?php
+$db_conn = oci_connect("ora_c6l8", "a49694110", "ug");
+
+$branchcity = oci_parse($db_conn, "SELECT CITY FROM BRANCH");
+$branchaddress = oci_parse($db_conn, "SELECT ADDRESS FROM BRANCH");
+$resultcity = oci_execute($branchcity, OCI_DEFAULT);
+$resultaddress = oci_execute($branchaddress, OCI_DEFAULT);
+
+echo '<p> Branch city </p>';
+
+echo '<select>';
+while ($row = oci_fech_array($resultcity)) {
+  echo '<option value="' . htmlspecialchars($row['CITY']) . '">' . htmlspecialchars($row['CITY']) . '</option>';
+}
+echo '</select>';
+
+echo '<p> Branch address </p>';
+
+echo '<select>';
+while ($row = oci_fech_array($resultaddress)) {
+  echo '<option value="' . htmlspecialchars($row['ADDRESS']) . '">' . htmlspecialchars($row['ADDRESS']) . '</option>';}
+echo '</select>';
 
 
+?>
+
+  <input type="submit" value="search" name="searchitembutton">
+  </p>
+
+
+
+
+  <!-- at branch -->
+
+  <!--- list ALL items -->
 
 
 </div>

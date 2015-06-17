@@ -101,34 +101,44 @@ echo "</select> </p>";
 
 <?php
 
-$selectedcity = $_POST['cityvalue'];
-$selectedaddress = $_POST['addressvalue']; 
+$selectedcity = $_POST['branchcity'];
+$selectedaddress = $_POST['branchaddress']; 
 $productname = $_POST['productname'];
 $productname = strtoupper($productname);
 
-if($selectedcity && $selectedaddress !== "----"){
-//query filtering branch and address 
-	$query = executePlainSQL("SELECT Name, Quantity, b.City, b.Address
-							  FROM Has h, ProductBarcode p, Branch b
-							  WHERE h.Barcode = p.Barcode AND 
-							        h.bID = b.bID AND  
-							        upper(Name) LIKE ‘%$productname%’ AND
-									b.City LIKE '%$selectedcity%' AND 
-									b.Address LIKE '%$selectedaddress%'
-							  GROUP BY b.bID");
-}else{
-//query for searching for product name only
-	$query = executePlainSQL("SELECT Name 
-							  FROM ProductBarcode 
-							  WHERE upper(Name) 
-							  LIKE '%$productname%'");
+if(($selectedcity === "----") || ($selectedaddress === "----")){
+//query for searching for product name in all stores
+  $query = executePlainSQL("SELECT Name, SUM(Quantity) as Quantity, City, Address, b.BID
+                FROM Has h, ProductBarcode p, Branch b 
+                WHERE  h.Barcode = p.Barcode AND 
+                      h.bID = b.bID AND  
+                      upper(Name) LIKE '%$productname%'
+                GROUP BY b.BID, City, Address, Name" );
   echo "<p> If you would like to search by location, please enter BOTH city and address. </p>";
+
+
+}else{
+  //query filtering branch and address 
+  $query = executePlainSQL("SELECT Name, SUM(Quantity) as Quantity, b.City as City, b.Address as Address, b.BID
+                FROM Has h, ProductBarcode p, Branch b
+                WHERE h.Barcode = p.Barcode AND 
+                      h.bID = b.bID AND  
+                      upper(Name) LIKE '%$productname%' AND
+                  b.City = '$selectedcity' AND 
+                  b.Address ='$selectedaddress'
+                GROUP BY b.bID, b.City, b.Address, Name");
+
 }
 echo '<p> Selected products: </p> ';
 if(!($_POST['productname'] == NULL)){
+  echo "<table>";
+  echo "<tr><th>Product</th><th>Quantity</th><th>City</th><th>Address</th></tr>";
+
 	while($row = OCI_Fetch_Assoc($query)){
-		echo "</tr><td>" . $row["NAME"] . "</td></tr>" . "<br>"; //or just use "echo $row[0]" 
+		echo "</tr><td>" . $row["NAME"] . "</td> <td>" . $row["QUANTITY"] . "</td> <td>" . $row["CITY"] . "</td> <td>" . $row["ADDRESS"] . "</td></tr>" . "<br>"; //or just use "echo $row[0]" 
 	}
+
+  echo "</table>";
 }
 
 
@@ -144,11 +154,6 @@ if(!($_POST['productname'] == NULL)){
 </div>
 
 
-
-
-      
-     
-  
     <div class="row">
         <div class="large-12 columns">
         

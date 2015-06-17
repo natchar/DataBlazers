@@ -39,23 +39,30 @@ $db_conn = oci_connect("ora_c6l8", "a49694110", "ug");
 
 $branchcity = oci_parse($db_conn, "SELECT CITY FROM BRANCH");
 $branchaddress = oci_parse($db_conn, "SELECT ADDRESS FROM BRANCH");
-$resultcity = oci_execute($branchcity, OCI_DEFAULT);
-$resultaddress = oci_execute($branchaddress, OCI_DEFAULT);
+$resultcity = oci_execute($branchcity);
+$resultaddress = oci_execute($branchaddress);
 
 echo '<p> Branch city </p>';
 
-echo '<select>';
-while ($row = oci_fech_array($resultcity)) {
-  echo '<option value="' . htmlspecialchars($row['CITY']) . '">' . htmlspecialchars($row['CITY']) . '</option>';
+echo "<select name = 'branchcity'>";
+echo "<option value = 'empty'> ---- </option>";
+while ($row = oci_fetch_assoc($branchcity)) {
+  echo "<option value='" . $row['CITY'] . "''>" . $row['CITY'] . "</option>";
 }
-echo '</select>';
+echo "</select>";
+?>
+
+
+
+<?php
 
 echo '<p> Branch address </p>';
 
-echo '<select>';
-while ($row = oci_fech_array($resultaddress)) {
-  echo '<option value="' . htmlspecialchars($row['ADDRESS']) . '">' . htmlspecialchars($row['ADDRESS']) . '</option>';}
-echo '</select>';
+echo "<select name = 'branchaddress'>";
+while ($row = oci_fetch_array($branchaddress)) {
+  echo "<option value='" . $row['ADDRESS'] . "'>" . $row['ADDRESS'] . "</option>";
+}
+echo "</select>";
 
 
 ?>

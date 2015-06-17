@@ -1,5 +1,7 @@
 <html>
-
+<head>
+<link rel="stylesheet" type="text/css" href="foundation.css">
+</head>
 <body>
       <div class="row">
         <div class="large-3 columns">
@@ -70,22 +72,26 @@ $resultaddress = oci_execute($branchaddress);
 $cityvalue = '';
 $addressvalue = '';
 echo '<p> Branch city: '; 
-echo "<select name = 'branchcity </p>'> ";
+echo "<select name = 'branchcity'>";
 echo "<option $cityvalue = 'empty'> ---- </option>";
 while ($row = oci_fetch_assoc($branchcity)) {
   echo "<option $cityvalue='" . $row['CITY'] . "'>" . $row['CITY'] . "</option>";
 }
-echo "</select>";
+echo "</select> </p>";
 
 echo '<p> Branch address: ';
-echo "<select name = 'branchaddress </p>'> ";
+echo "<select name = 'branchaddress'> ";
 echo "<option $addressvalue = 'empty'> ---- </option>";
 while ($row = oci_fetch_array($branchaddress)) {
   echo "<option $addressvalue='" . $row['ADDRESS'] . "'>" . $row['ADDRESS'] . "</option>";
 }
-echo "</select>";
+echo "</select> </p>";
+
+
 
 ?>
+
+
 
 <p> Search an item: <input type="text" name="productname"> 
 
@@ -94,18 +100,19 @@ echo "</select>";
 </form>	
 
 <?php
-echo '<p> Selected products: </p> ';
+
 $selectedcity = $_POST['cityvalue'];
 $selectedaddress = $_POST['addressvalue']; 
 $productname = $_POST['productname'];
+$productname = strtoupper($productname);
 
-if(selectedcity && selectedaddress !== "----"){
+if($selectedcity && $selectedaddress !== "----"){
 //query filtering branch and address 
 	$query = executePlainSQL("SELECT Name, Quantity, b.City, b.Address
 							  FROM Has h, ProductBarcode p, Branch b
 							  WHERE h.Barcode = p.Barcode AND 
 							        h.bID = b.bID AND  
-							        Name LIKE ‘%$productname%’ AND
+							        upper(Name) LIKE ‘%$productname%’ AND
 									b.City LIKE '%$selectedcity%' AND 
 									b.Address LIKE '%$selectedaddress%'
 							  GROUP BY b.bID");
@@ -113,9 +120,11 @@ if(selectedcity && selectedaddress !== "----"){
 //query for searching for product name only
 	$query = executePlainSQL("SELECT Name 
 							  FROM ProductBarcode 
-							  WHERE Name 
+							  WHERE upper(Name) 
 							  LIKE '%$productname%'");
+  echo "<p> If you would like to search by location, please enter BOTH city and address. </p>";
 }
+echo '<p> Selected products: </p> ';
 if(!($_POST['productname'] == NULL)){
 	while($row = OCI_Fetch_Assoc($query)){
 		echo "</tr><td>" . $row["NAME"] . "</td></tr>" . "<br>"; //or just use "echo $row[0]" 

@@ -1,4 +1,7 @@
 <html>
+<head>
+<link rel="stylesheet" type="text/css" href="foundation.css">
+</head>
 
 <body>
       <?php

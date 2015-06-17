@@ -35,16 +35,30 @@
         <div class="large-4 columns">
           <img src="http://placehold.it/400x300&text=[img]"/>
           <h4>Your Points!</h4>
+          
 
-	  <p> Your Member ID please: </p>
-	  <p><input type="text" name="MemberNo" size="6"> <input type="submit" value="MemberNo"></p>
-          <p>
-            
-	    echo "Member#:" $_POST['MemberNo'];
-            echo "you have ___ points";
-            echo "you can afford the following items!";
+          <?php
+            $db_conn = oci_connect("ora_r3v8", "a21491139", "ug");
+            //!!! NEED TO TAKE MEMBER ID FROM LOGIN
+            $Memberid = 90876543;
+            $Memberpoints = oci_parse($db_conn, "SELECT POINTS FROM MEMBER MEMBER WHERE CID=:Memberid");
+            oci_bind_by_name($Memberpoints, ":Memberid", $Memberid);
+            $Memberpointsexecute = oci_execute($Memberpoints);
+            echo "<p> MemberID: " . $Memberid . "</p>";
+            if($Memberpointsexecute){
+              while($row = oci_fetch_assoc($Memberpoints)){
+                print "<p> You have " . $row['POINTS'] . " points. </p>";
+              }
+            }
 
-          </p>
+            //while ($row = oci_fetch_array($Memberpointsexecute, OCI_BOTH)) {
+            //  echo "<p> you have " . $row['POINTS'] . " points </p>";
+            //}
+
+          
+            //echo "you can afford the following items!";
+
+          ?>
         </div>
         
         <div class="large-4 columns">
@@ -60,8 +74,61 @@
         </div>
       
         </div>
-        
+        <div class= "row">
+  <!--- Add  ---->
+
+  <!--- search bar -->
+  <!--refresh page when submit-->
+
+  <p> Search an item: <input type="text" name="searchitem" size="6">
+
+<?php
+
+
+
+$branchcity = oci_parse($db_conn, "SELECT distinct CITY FROM BRANCH");
+$branchaddress = oci_parse($db_conn, "SELECT distinct ADDRESS FROM BRANCH");
+$resultcity = oci_execute($branchcity);
+$resultaddress = oci_execute($branchaddress);
+
+echo '<p> Branch city </p>';
+
+echo "<select name = 'branchcity'>";
+echo "<option value = 'empty'> ---- </option>";
+while ($row = oci_fetch_assoc($branchcity)) {
+  echo "<option value='" . $row['CITY'] . "'>" . $row['CITY'] . "</option>";
+}
+echo "</select>";
+
+echo '<p> Branch address </p>';
+echo "<select name = 'branchaddress'>";
+echo "<option value = 'empty'> ---- </option>";
+while ($row = oci_fetch_array($branchaddress)) {
+  echo "<option value='" . $row['ADDRESS'] . "'>" . $row['ADDRESS'] . "</option>";
+}
+echo "</select>";
+
+?>
+
+  <input type="submit" value="search" name="searchitembutton">
+  </p>
+
+
+
+
+  <!-- at branch -->
+
+  <!--- list ALL items -->
+
+
+</div>
+
+
+
+
+      
      
+  
     <div class="row">
         <div class="large-12 columns">
         
@@ -104,3 +171,5 @@
     </body>
 
 </html>
+
+     

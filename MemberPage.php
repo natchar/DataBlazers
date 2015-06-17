@@ -125,7 +125,7 @@
           <?php
             $db_conn = oci_connect("ora_r3v8", "a21491139", "ug");
             //!!! NEED TO TAKE MEMBER ID FROM LOGIN
-            $Memberid = 90876543;
+            $Memberid = 89876543;
             $Memberpoints = oci_parse($db_conn, "SELECT POINTS FROM MEMBER WHERE CID=:Memberid");
 
             oci_bind_by_name($Memberpoints, ":Memberid", $Memberid);
@@ -176,8 +176,22 @@
         
         <div class="large-4 columns">
           <img src="http://placehold.it/400x300&text=[img]"/>
-          <h4>This is a content section.</h4>
-          <p> </p>
+          <h4>Your console stats:</h4>
+          <?php
+           $MemberHasView = oci_parse($db_conn, "CREATE VIEW MEMBERHAS AS SELECT M.CID, DISTINCT PB.BARCODE FROM MEMBER M, PURCHASETRACKS PT, PRODUCTBARCODE PB WHERE M.CID=PT.CID AND PT.BARCODE=PB.BARCODE");
+           $MemberHasViewExecute = oci_execute($MemberHasView);
+
+           $MemberStats = oci_parse($db_conn, "SELECT PB.NAME, COUNT(DISTINCT MH.BARCODE) FROM MEMBERHAS MH, PLAYEDON PO, PRODUCTBARCODE PB WHERE MH.BARCODE=PO.GAMEBARCODE AND PO.CONSOLEBARCODE= PB.CONSOLEBARCODE AND MH.CID = :Memberid");
+           oci_bind_by_name($MemberStats, ":Memberid", $Memberid);
+           $MemberStatsExecute = oci_execute($MemberStats);
+
+           if ($MemberHasViewExecute && $MemberStatsExecute){
+              while($row = oci_fetch_array($MemberStats)){
+                echo "You have " . $row[1] . "games that can be played on " . $row[0] . "<br>";
+              }
+           }
+
+          ?>
         </div>
       
         </div>

@@ -29,6 +29,7 @@
       </div>
 
 <div class= "row">
+  <div class="large-6 columns">
   <!--- Add  ---->
 
   <!--- search bar -->
@@ -152,13 +153,56 @@ if(!($_POST['productname'] == NULL)){
   echo "</table>";
 }
 ?>
-</form 
+</form >
+</div>
 </p>
 <!-- </form> -->
 
   <!-- at branch -->
 
   <!--- list ALL items -->
+<div class="large-6 columns">
+  <p> We have a whole range of prices! Think we're lying? Take a look at each of our branches! </p>
+<form method="POST" action="gc.php"> 
+<select name = 'minmax'>
+  <option value='min'> Cheapest </option>
+  <option value='max'> Most expensive </option>
+</select>
+
+<input type="submit" value="GO" name="minmaxgo">
+
+<?php
+
+if($_POST['minmaxgo']=='GO'){
+ 
+  if($_POST['minmax'] == 'min'){
+    $query = executePlainSQL(
+      "SELECT H.BID AS BID, MIN(PB.PRICE) AS PRICE
+      FROM PRODUCTBARCODE PB, HAS H 
+      WHERE PB.BARCODE=H.BARCODE
+      GROUP BY H.BID");
+  } else {
+    $query = executePlainSQL(
+       "SELECT H.BID AS BID, MAX(PB.PRICE) AS PRICE
+      FROM PRODUCTBARCODE PB, HAS H 
+      WHERE PB.BARCODE=H.BARCODE
+      GROUP BY H.BID");
+  }
+  echo "<table>";
+  echo "<tr><th>BranchID</th><th>PRICE</th></tr>";
+
+while($row = OCI_Fetch_Assoc($query)){
+    echo "</tr><td>" . $row[0] . "</td> <td>" . $row[1] . "</td></tr>" . "<br>"; 
+}
+  echo "</table>";
+}
+
+?>
+
+</form>
+</div>
+
+
 
 
 </div>

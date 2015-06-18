@@ -120,7 +120,7 @@
      
      
       <div class="row">
-        <div class="large-4 columns">
+        <div class="large-6 columns">
           <img src="http://placehold.it/400x300&text=[img]"/>
           <h4>Your Points!</h4>
           
@@ -155,7 +155,7 @@
         </div>
         
 
-        <div class="large-4 columns">
+        <div class="large-6 columns">
           <img src="http://placehold.it/400x300&text=[img]"/>
           <h4>What you got from us:</h4>
 
@@ -167,7 +167,7 @@
 
             if($MemberHistoryExecute){
               while($row = oci_fetch_array($MemberHistory)){
-                echo $row[1]. " " . $row[0] . "<br>";
+                echo $row[1]. " X " . $row[0] . "<br>";
               }
             }
 
@@ -176,17 +176,21 @@
 
 
         </div>
-        
+        <!--
         <div class="large-4 columns">
           <img src="http://placehold.it/400x300&text=[img]"/>
           <h4>Your console stats:</h4>
           <?php
-           $MemberHasView = oci_parse($db_conn, "CREATE VIEW MEMBERHAS AS SELECT M.CID, DISTINCT PB.BARCODE FROM MEMBER M, PURCHASETRACKS PT, PRODUCTBARCODE PB WHERE M.CID=PT.CID AND PT.BARCODE=PB.BARCODE");
+           $MemberHasView = oci_parse($db_conn, "CREATE VIEW MEMBERHAS AS SELECT M.CID as CID, DISTINCT PB.BARCODE as BARCODE FROM MEMBER M, PURCHASETRACKS PT, PRODUCTBARCODE PB WHERE M.CID=PT.CID AND PT.BARCODE=PB.BARCODE");
            $MemberHasViewExecute = oci_execute($MemberHasView);
 
-           $MemberStats = oci_parse($db_conn, "SELECT PB.NAME, COUNT(DISTINCT MH.BARCODE) FROM MEMBERHAS MH, PLAYEDON PO, PRODUCTBARCODE PB WHERE MH.BARCODE=PO.GAMEBARCODE AND PO.CONSOLEBARCODE= PB.CONSOLEBARCODE AND MH.CID = :Memberid");
+           $MemberStats = oci_parse($db_conn, "SELECT PB.NAME, COUNT(DISTINCT MH.BARCODE) FROM MEMBERHAS MH, PLAYEDON PO, PRODUCTBARCODE PB WHERE MH.BARCODE=PO.GAMEBARCODE AND PO.CONSOLEBARCODE= PB.BARCODE AND MH.CID = :Memberid");
            oci_bind_by_name($MemberStats, ":Memberid", $Memberid);
            $MemberStatsExecute = oci_execute($MemberStats);
+
+           //SELECT
+           //FROM MEMBER M, PURCHASETRACKS PT, PRODUCTBARCODE PB, PLAYEDON PO
+           //WHERE PO.GAMEBARCODE=PB.BARCODE
 
            if ($MemberHasViewExecute && $MemberStatsExecute){
               while($row = oci_fetch_array($MemberStats)){
@@ -195,7 +199,7 @@
            }
 
           ?>
-        </div>
+        </div> -->
       
         </div>
         <div class= "row">
@@ -248,11 +252,6 @@ echo "</select>";
 </div>
 
 
-
-
-      
-     
-  
     <div class="row">
         <div class="large-12 columns">
         
@@ -272,7 +271,27 @@ echo "</select>";
         </div>
       </div>
      
+        <div class="row">
+        <div class="large-12 columns">
+        
+          <div class="panel">
+            <h5>Don't want to be a member anymore?</h5>
+                
+            <div class="row">
+              <div class="large-9 columns">
+                <p>We'd be sad to see you go, but if you're absolutely sure, click the button. </p>
+                <h5>Note that all information will be removed from the system.</h5>
+              </div>
+              <div class="large-3 columns">
+                <a href="#" class="radius button right">Contact Us</a>
+              </div>
+            </div>
+          </div>
+          
+        </div>
+      </div> 
        
+
       
       <footer class="row">
         <div class="large-12 columns">

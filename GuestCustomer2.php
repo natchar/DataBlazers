@@ -29,15 +29,11 @@
       </div>
 
 <div class= "row">
-  <!--- Add  ---->
 
-  <!--- search bar -->
-  <!--refresh page when submit-->
-
-  
 <form method="POST" action="GuestCustomer2.php">
+
 <?php
-  
+  echo "<p> Check if what you're looking for is in stock! </p>";
 $db_conn = oci_connect("ora_r3v8", "a21491139", "ug");
 function executePlainSQL($cmdstr) { //takes a plain (no bound variables) SQL command and executes it
 	//echo "<br>running ".$cmdstr."<br>";

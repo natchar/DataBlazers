@@ -1,0 +1,55 @@
+<html>
+<body>
+<fieldset>
+
+<legend>Purchase Product:</legend>
+
+<form action = "employee.php" method="POST">
+<p>Enter the Barcode:</p> <input type="number" name="BarcodePurchased" />
+<p>Enter the Quantity:</p> <input type="number" name="QuantityPurchased" /> 
+<p>Enter the BranchID: </p> <input type = "number" name = "BranchPurchased" />
+<p> </p>
+<input type="submit" value="PurchaseProduct" name = "submit">
+</form>
+</fieldset>
+
+</body>
+</html>
+
+<?php
+    if (isset($_POST['submit']) and $_POST['submit']=="PurchaseProduct"){
+        $PurchasedBarcode = $_POST['BarcodePurchased'];
+        $PurchasedQuantity = $_POST['QuantityPurchased'];
+        $PurchasedBranch = $_POST['BranchPurchased'];
+        
+        $PurchasedQuery = "SELECT Quantity FROM Has Where barcode = " .$PurchasedBarcode." and bID = ".$PurchasedBranch."";
+        $PurchasedSelected = OCI_parse($dbhandle,$PurchasedQuery);
+        $resultof =  OCI_execute($PurchasedSelected);
+        while ($row = OCI_Fetch_ASSOC($PurchasedSelected)){
+            $finaldestinationQuantity = $row['QUANTITY'];
+            
+        }
+        $newupdatedquantityeye = $finaldestinationQuantity - $PurchasedQuantity;
+        echo $newupdatedquantityeye;
+        $date = strtotime("+15 day");
+		$endDate = date('M d, Y', $date);
+		$receiptNumber = 999999999999;
+		$receiptNumber = $receiptNumber - 1;
+        $PurchasedQueryone = "update has set Quantity = ".$newupdatedquantityeye." Where barcode = ".$PurchasedBarcode."";
+        $RecieptUpdateQuery = "Insert INTO PurchaseExpDate VALUES(" . $receiptNumber . ", '" . $endDate . "')";
+		
+		$PurchasedSelectedone = OCI_parse($dbhandle,$PurchasedQueryone);
+        $PurchasedReciept = OCI_parse($dbhandle,$RecieptUpdateQuery);
+		
+        $resultonethousand = OCI_execute($PurchasedSelectedone);
+        if(!$resultonethousand){
+            echo "bleh";
+        }
+        $resulttwothousand = OCI_execute($PurchasedReciept);
+		if(!$resulttwothousand){
+			echo "blah";
+		}
+		OCICommit($dbhandle);
+		}
+            
+?>

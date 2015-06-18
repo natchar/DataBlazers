@@ -1,6 +1,94 @@
 <html>
+<head>
+<link rel="stylesheet" type="text/css" href="foundation.css">
+</head>
 
 <body>
+      <?php
+      $success = True; //keep track of errors so it redirects the page only if there are no errors
+      $db_conn = oci_connect("ora_r3v8", "a21491139", "ug");
+
+      function executePlainSQL($cmdstr) { //takes a plain (no bound variables) SQL command and executes it
+        //echo "<br>running ".$cmdstr."<br>";
+        global $db_conn, $success;
+        $statement = OCIParse($db_conn, $cmdstr); //There is a set of comments at the end of the file that describe some of the OCI specific functions and how they work
+
+        if (!$statement) {
+          echo "<br>Cannot parse the following command: " . $cmdstr . "<br>";
+          $e = OCI_Error($db_conn); // For OCIParse errors pass the       
+          // connection handle
+          echo htmlentities($e['message']);
+          $success = False;
+        }
+
+        $r = OCIExecute($statement, OCI_DEFAULT);
+        if (!$r) {
+          echo "<br>Cannot execute the following command: " . $cmdstr . "<br>";
+          $e = oci_error($statement); // For OCIExecute errors pass the statementhandle
+          echo htmlentities($e['message']);
+          $success = False;
+        } else {
+
+        }
+        return $statement;
+
+      }
+      
+      function executeBoundSQL($cmdstr, $list) {
+        /* Sometimes a same statement will be excuted for severl times, only
+         the value of variables need to be changed.
+         In this case you don't need to create the statement several times; 
+         using bind variables can make the statement be shared and just 
+         parsed once. This is also very useful in protecting against SQL injection. See example code below for       how this functions is used */
+
+        global $db_conn, $success;
+        $statement = OCIParse($db_conn, $cmdstr);
+
+        if (!$statement) {
+          echo "<br>Cannot parse the following command: " . $cmdstr . "<br>";
+          $e = OCI_Error($db_conn);
+          echo htmlentities($e['message']);
+          $success = False;
+        }
+
+        foreach ($list as $tuple) {
+          foreach ($tuple as $bind => $val) {
+            //echo $val;
+            //echo "<br>".$bind."<br>";
+            OCIBindByName($statement, $bind, $val);
+            unset ($val); //make sure you do not remove this. Otherwise $val will remain in an array object wrapper which will not be recognized by Oracle as a proper datatype
+
+          }
+          $r = OCIExecute($statement, OCI_DEFAULT);
+          if (!$r) {
+            echo "<br>Cannot execute the following command: " . $cmdstr . "<br>";
+            $e = OCI_Error($statement); // For OCIExecute errors pass the statementhandle
+            echo htmlentities($e['message']);
+            echo "<br>";
+            $success = False;
+          }
+        }
+
+      }
+
+      function printResult($result) { //prints results from a select statement
+        echo "<br>Got data from table tab1:<br>";
+        echo "<table>";
+        echo "<tr><th>ID</th><th>Name</th></tr>";
+
+        while ($row = OCI_Fetch_Array($result, OCI_BOTH)) {
+          echo "<tr><td>" . $row["NID"] . "</td><td>" . $row["NAME"] . "</td></tr>"; //or just use "echo $row[0]" 
+        }
+        echo "</table>";
+
+      }
+
+
+
+      ?>
+
+
+
       <div class="row">
         <div class="large-3 columns">
           <h1><img src="http://placehold.it/400x100&text=DATABLAZERGAMES"/></h1>
@@ -32,36 +120,138 @@
      
      
       <div class="row">
-        <div class="large-4 columns">
+        <div class="large-6 columns">
           <img src="http://placehold.it/400x300&text=[img]"/>
           <h4>Your Points!</h4>
+          
 
-	  <p> Your Member ID please: </p>
-	  <p><input type="text" name="MemberNo" size="6"> <input type="submit" value="MemberNo"></p>
-          <p>
-            
-	    echo "Member#:" $_POST['MemberNo'];
-            echo "you have ___ points";
-            echo "you can afford the following items!";
+          <?php
+            $db_conn = oci_connect("ora_r3v8", "a21491139", "ug");
+            //!!! NEED TO TAKE MEMBER ID FROM LOGIN
+            $Memberid = 89876543;
+            $Memberpoints = oci_parse($db_conn, "SELECT POINTS FROM MEMBER WHERE CID=:Memberid");
 
-          </p>
+            oci_bind_by_name($Memberpoints, ":Memberid", $Memberid);
+            $Memberpointsexecute = oci_execute($Memberpoints);
+            echo "<p> MemberID: " . $Memberid . "</p>";
+            if($Memberpointsexecute){
+              while($row = oci_fetch_assoc($Memberpoints)){
+                print "<p> You have " . $row['POINTS'] . " points. </p>";
+              }
+            }
+          
+            $MemberAffords = oci_parse($db_conn, "SELECT PB.NAME, PB.PRICE FROM MEMBER M, PRODUCTBARCODE PB WHERE M.POINTS > PB.PRICE AND M.CID = :Memberid ORDER BY PRICE");
+            oci_bind_by_name($MemberAffords, ":Memberid", $Memberid);
+            $MemberAffordsExecute = oci_execute($MemberAffords);
+
+            echo "<p> You can afford the following items! </p>";
+
+            if($MemberAffordsExecute){
+              while ($row = oci_fetch_array($MemberAffords)){
+                echo  $row[1]." points: ".$row[0] . "<br>";
+              }
+            }
+          ?>
         </div>
         
+
+        <div class="large-6 columns">
+          <img src="http://placehold.it/400x300&text=[img]"/>
+          <h4>What you got from us:</h4>
+
+          <?php
+            $MemberHistory = oci_parse($db_conn, "SELECT PB.NAME, SUM(PT.QUANTITY) FROM MEMBER M, PURCHASETRACKS PT, PRODUCTBARCODE PB WHERE M.CID=PT.CID AND PT.BARCODE=PB.BARCODE AND M.CID = :Memberid GROUP BY PB.NAME");
+
+            oci_bind_by_name($MemberHistory, ":Memberid", $Memberid);
+            $MemberHistoryExecute = oci_execute($MemberHistory);
+
+            if($MemberHistoryExecute){
+              while($row = oci_fetch_array($MemberHistory)){
+                echo $row[1]. " X " . $row[0] . "<br>";
+              }
+            }
+
+          ?>
+          <p> </p>
+
+
+        </div>
+        <!--
         <div class="large-4 columns">
           <img src="http://placehold.it/400x300&text=[img]"/>
-          <h4>Your history</h4>
-          <p>Bacon ipsum dolor sit amet nulla ham qui sint exercitation eiusmod commodo, chuck duis velit. Aute in reprehenderit, dolore aliqua non est magna in labore pig pork biltong. Eiusmod swine spare ribs reprehenderit culpa. Boudin aliqua adipisicing rump corned beef.</p>
-        </div>
-        
-        <div class="large-4 columns">
-          <img src="http://placehold.it/400x300&text=[img]"/>
-          <h4>This is a content section.</h4>
-          <p>Bacon ipsum dolor sit amet nulla ham qui sint exercitation eiusmod commodo, chuck duis velit. Aute in reprehenderit, dolore aliqua non est magna in labore pig pork biltong. Eiusmod swine spare ribs reprehenderit culpa. Boudin aliqua adipisicing rump corned beef.</p>
-        </div>
+          <h4>Your console stats:</h4>
+          <?php
+           $MemberHasView = oci_parse($db_conn, "CREATE VIEW MEMBERHAS AS SELECT M.CID as CID, DISTINCT PB.BARCODE as BARCODE FROM MEMBER M, PURCHASETRACKS PT, PRODUCTBARCODE PB WHERE M.CID=PT.CID AND PT.BARCODE=PB.BARCODE");
+           $MemberHasViewExecute = oci_execute($MemberHasView);
+
+           $MemberStats = oci_parse($db_conn, "SELECT PB.NAME, COUNT(DISTINCT MH.BARCODE) FROM MEMBERHAS MH, PLAYEDON PO, PRODUCTBARCODE PB WHERE MH.BARCODE=PO.GAMEBARCODE AND PO.CONSOLEBARCODE= PB.BARCODE AND MH.CID = :Memberid");
+           oci_bind_by_name($MemberStats, ":Memberid", $Memberid);
+           $MemberStatsExecute = oci_execute($MemberStats);
+
+           //SELECT
+           //FROM MEMBER M, PURCHASETRACKS PT, PRODUCTBARCODE PB, PLAYEDON PO
+           //WHERE PO.GAMEBARCODE=PB.BARCODE
+
+           if ($MemberHasViewExecute && $MemberStatsExecute){
+              while($row = oci_fetch_array($MemberStats)){
+                echo "You have " . $row[1] . "games that can be played on " . $row[0] . "<br>";
+              }
+           }
+
+          ?>
+        </div> -->
       
         </div>
-        
-     
+        <div class= "row">
+  <!--- Add  ---->
+
+  <!--- search bar -->
+  <!--refresh page when submit-->
+
+  <p> Search an item: <input type="text" name="searchitem" size="6">
+
+<?php
+
+
+
+$branchcity = oci_parse($db_conn, "SELECT distinct CITY FROM BRANCH");
+$branchaddress = oci_parse($db_conn, "SELECT distinct ADDRESS FROM BRANCH");
+$resultcity = oci_execute($branchcity);
+$resultaddress = oci_execute($branchaddress);
+
+echo '<p> Branch city </p>';
+
+echo "<select name = 'branchcity'>";
+echo "<option value = 'empty'> ---- </option>";
+while ($row = oci_fetch_assoc($branchcity)) {
+  echo "<option value='" . $row['CITY'] . "'>" . $row['CITY'] . "</option>";
+}
+echo "</select>";
+
+echo '<p> Branch address </p>';
+echo "<select name = 'branchaddress'>";
+echo "<option value = 'empty'> ---- </option>";
+while ($row = oci_fetch_array($branchaddress)) {
+  echo "<option value='" . $row['ADDRESS'] . "'>" . $row['ADDRESS'] . "</option>";
+}
+echo "</select>";
+
+?>
+
+  <input type="submit" value="search" name="searchitembutton">
+  </p>
+
+
+
+
+  <!-- at branch -->
+
+  <!--- list ALL items -->
+
+
+</div>
+
+
     <div class="row">
         <div class="large-12 columns">
         
@@ -81,7 +271,27 @@
         </div>
       </div>
      
+        <div class="row">
+        <div class="large-12 columns">
+        
+          <div class="panel">
+            <h5>Don't want to be a member anymore?</h5>
+                
+            <div class="row">
+              <div class="large-9 columns">
+                <p>We'd be sad to see you go, but if you're absolutely sure, click the button. </p>
+                <h5>Note that all information will be removed from the system.</h5>
+              </div>
+              <div class="large-3 columns">
+                <a href="#" class="radius button right">Contact Us</a>
+              </div>
+            </div>
+          </div>
+          
+        </div>
+      </div> 
        
+
       
       <footer class="row">
         <div class="large-12 columns">
@@ -101,6 +311,9 @@
           </div>
         </div> 
       </footer>
+
     </body>
 
 </html>
+
+     

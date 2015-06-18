@@ -1,0 +1,121 @@
+<html>
+
+<body>
+      <div class="row">
+        <div class="large-3 columns">
+          <h1><img src="http://placehold.it/400x100&text=DATABLAZERGAMES"/></h1>
+        </div>
+        <div class="large-9 columns">
+          <ul class="right button-group">
+          <li><a href="#" class="button">Link 1</a></li>
+          <li><a href="#" class="button">Link 2</a></li>
+          <li><a href="#" class="button">Link 3</a></li>
+          <li><a href="#" class="button">Link 4</a></li>
+          </ul>
+         </div>
+       </div>
+      
+
+      <div class="row">
+        <div class="large-12 columns">
+        <div id="slider">
+          <img src="http://placehold.it/1000x400&text=[ img 1 ]"/>
+        </div>
+        
+        <hr/>
+        </div>
+      </div>
+
+<div class= "row">
+  <!--- Add  ---->
+
+  <!--- search bar -->
+  <!--refresh page when submit-->
+
+  
+<form method="POST" action="GuestCustomer2.php">
+<p> Search an item: <input type="text" name="productname"> 
+<input type="submit" value="search" name="searchsubmit">
+</p>
+</form>
+
+<?php
+$db_conn = oci_connect("ora_r3v8", "a21491139", "ug");
+$branchcity = oci_parse($db_conn, "SELECT distinct CITY FROM BRANCH");
+$branchaddress = oci_parse($db_conn, "SELECT distinct ADDRESS FROM BRANCH");
+$resultcity = oci_execute($branchcity);
+$resultaddress = oci_execute($branchaddress);
+echo '<p> Branch city: '; 
+echo "<select name = 'branchcity </p>'> ";
+echo "<option value = 'empty'> ---- </option>";
+while ($row = oci_fetch_assoc($branchcity)) {
+  echo "<option value='" . $row['CITY'] . "'>" . $row['CITY'] . "</option>";
+}
+echo "</select>";
+?>
+
+<?php
+echo '<p> Branch address: ';
+echo "<select name = 'branchaddress'</p>>";
+while ($row = oci_fetch_array($branchaddress)) {
+  echo "<option value = 'empty'> ---- </option>";
+  echo "<option value='" . $row['ADDRESS'] . "'>" . $row['ADDRESS'] . "</option>";
+}
+echo "</select>";
+?>
+
+  <input type="submit" value="search" name="searchitembutton \n">
+  
+<?php
+
+$db_conn = oci_connect("ora_r3v8", "a21491139", "ug");
+function executePlainSQL($cmdstr) { //takes a plain (no bound variables) SQL command and executes it
+	//echo "<br>running ".$cmdstr."<br>";
+	global $db_conn, $success;
+	$statement = OCIParse($db_conn, $cmdstr); //There is a set of comments at the end of the file that describe some of the OCI specific functions and how they work
+
+	if (!$statement) {
+		echo "<br>Cannot parse the following command: " . $cmdstr . "<br>";
+		$e = OCI_Error($db_conn); // For OCIParse errors pass the       
+		// connection handle
+		echo htmlentities($e['message']);
+		$success = False;
+	}
+
+	$r = OCIExecute($statement, OCI_DEFAULT);
+	if (!$r) {
+		echo "<br>Cannot execute the following command: " . $cmdstr . "<br>";
+		$e = oci_error($statement); // For OCIExecute errors pass the statementhandle
+		echo htmlentities($e['message']);
+		$success = False;
+	} else {
+
+	}
+	return $statement;
+
+}
+echo '<p> Selected products: </p> ';
+$productname = $_POST['productname'];
+//query for searching for product name only
+	$query = executePlainSQL("SELECT Name 
+							  FROM ProductBarcode 
+							  WHERE Name 
+							  LIKE '%$productname%'");
+
+	
+while($row = OCI_Fetch_Assoc($query)){
+	echo "</tr><td>" . $row["NAME"] . "</td></tr>" . "<br>"; //or just use "echo $row[0]" 
+}
+
+?>	
+
+
+
+  <!-- at branch -->
+
+  <!--- list ALL items -->
+
+
+</div>
+
+
